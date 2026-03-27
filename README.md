@@ -120,7 +120,7 @@ node ~/.ship-app/scripts/config.mjs --validate
 4. Download the **JSON key file**
 5. Go to [Play Console](https://play.google.com/console/) → **Settings → API access**
 6. Link your Google Cloud project
-7. Grant the service account **Release manager** permissions
+7. Grant the service account both **Release manager** AND **Manage store presence** permissions
 
 </details>
 
@@ -191,7 +191,7 @@ Phase 13 ──  Confirmation with Play Console link
 ### API auth fails
 - Verify the service account JSON key file exists at the configured path
 - Ensure the API is enabled in Google Cloud Console
-- Check that the service account has Release manager role in Play Console
+- Check that the service account has both Release manager AND Manage store presence roles in Play Console
 
 ### Screenshots fail
 - Ensure Playwright MCP is configured in Claude Code

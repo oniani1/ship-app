@@ -55,7 +55,15 @@ Run scripts with: `node "$SHIP_APP_DIR/scripts/<script>.mjs" <args>`
 
 ## Phase 1: Configuration Check
 
-Run: `node "$SHIP_APP_DIR/scripts/config.mjs" --validate`
+First, ensure the config file exists:
+```bash
+node "$SHIP_APP_DIR/scripts/config.mjs" --init
+```
+
+Then validate:
+```bash
+node "$SHIP_APP_DIR/scripts/config.mjs" --validate
+```
 
 Also check for `gh` CLI (needed for privacy policy deployment):
 ```bash
@@ -73,7 +81,7 @@ If `gh` is not authenticated, add to setup: "Run `gh auth login` to authenticate
      3. Go to IAM & Admin → Service Accounts → Create
      4. Download the JSON key file
      5. Go to Play Console → Settings → API access → Link the Google Cloud project
-     6. Invite the service account email with "Release manager" permissions
+     6. Invite the service account email with BOTH "Release manager" AND "Manage store presence" permissions (needed for listings + images + bundles)
    - Save path: `node "$SHIP_APP_DIR/scripts/config.mjs" --set googlePlay.serviceAccountKeyPath "/path/to/key.json"`
 
 2. **AI Image Generation** — needed for icons and feature graphic:
@@ -94,15 +102,16 @@ Re-validate after setup. STOP if still incomplete. Update state: `{ "phase": 1 }
 
 ## Phase 2: Project Detection
 
-Run the `project-detective` agent against the current working directory to detect:
-- Framework type (android-native, react-native, capacitor, pwa-twa)
-- Package name, version name, version code
-- Signing configuration
-- Dev server command and port
+Run the detection script (returns JSON):
+```bash
+node "$SHIP_APP_DIR/scripts/detect-project.mjs" "$(pwd)"
+```
 
-Alternatively, run the script directly: `node "$SHIP_APP_DIR/scripts/detect-project.mjs" "$(pwd)"`
+Parse the JSON output for: `type`, `packageName`, `versionName`, `versionCode`, `signingConfigured`, `devCommand`, `devPort`.
 
-Present findings to user and confirm. If detection fails, ask user to specify:
+If `type` is `"unknown"`, fall back to the `project-detective` agent for deeper analysis.
+
+Present findings to user and confirm. If detection still fails, ask user to specify:
 - Framework type
 - Package name (com.example.app format)
 
@@ -142,6 +151,7 @@ If NOT signed:
   - Ask: "Does your key password differ from the keystore password?" (often they're the same)
 - **New**: Ask for keystore details (name, organization, country)
   - Run: `node "$SHIP_APP_DIR/scripts/sign-aab.mjs" --generate-keystore <path> <alias> <password> <cn>`
+  - Note: For newly generated keystores, the key password and keystore password are always identical. Use the same password for both in the `--sign` command.
 - Sign: `node "$SHIP_APP_DIR/scripts/sign-aab.mjs" --sign <aab> <keystore> <keystorePassword> <keyAlias> <keyPassword>`
 
 **For UPDATE mode**: WARN prominently — "You MUST use the SAME keystore as the original release. Using a different keystore will cause the upload to fail."
@@ -153,6 +163,8 @@ Update state with `signedAabPath`. Set `"phase": 4`.
 Run: `node "$SHIP_APP_DIR/scripts/google-play-auth.mjs" --verify`
 
 If a package name is known: `node "$SHIP_APP_DIR/scripts/google-play-auth.mjs" --verify --package=<packageName>`
+
+The script outputs JSON. Check that `success` is `true`. If `false`, show `error` to the user.
 
 **If auth fails:** The config setup in Phase 1 should have caught this, but if it still fails:
 - Check the service account has "Release manager" role in Play Console
@@ -200,11 +212,23 @@ Set `"phase": 6`.
 
 ## Phase 7: Store Listing Generation
 
-Launch the `store-listing-writer` agent with context:
-- App name, package name, project type
-- Contents of README.md (if exists)
-- Contents of package.json description
-- List of key component/screen names from the source code
+Read the project's README.md and package.json description. Then launch the `store-listing-writer` agent with this prompt:
+
+```
+Generate a Google Play Store listing for:
+App name: <appName>
+Package: <packageName>
+Type: <projectType>
+Target languages: <comma-separated language codes>
+
+README contents:
+<paste README.md contents here, or "No README found">
+
+Package description: <package.json description field>
+
+The project is in: <current working directory path>
+You can read source files to understand features better.
+```
 
 The agent generates: title, shortDescription, fullDescription, category, tags.
 
@@ -253,12 +277,12 @@ Check if a dev server is already running on common ports (3000, 5173, 8080, 8100
 curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 2>/dev/null
 ```
 
-If not running:
-- Use the dev command from Phase 2 detection
-- Start it and capture the PID: `npm run dev & echo $!`
-- Save the PID to state as `devServerPid`
-- Wait for it to be ready
-- **IMPORTANT: Check for port conflicts first. If port is occupied, use a different port.**
+If not running, tell the user:
+> "I need your app running locally to capture screenshots. Please start your dev server in a separate terminal:
+> `<devCommand from Phase 2>` (e.g., `npm run dev`)
+> Say 'done' when it's ready."
+
+Wait for user confirmation, then verify the server is accessible.
 
 If no dev server possible (native Android only): Ask user for URL or skip screenshots.
 
@@ -275,10 +299,11 @@ Present the list to user: "I found these screens to screenshot. Add, remove, or 
 ### Step 3: Capture screenshots
 
 For each screen:
-1. `browser_resize` to `{ width: 1080, height: 2400 }` (high-res phone viewport)
+1. `browser_resize` to `{ width: 1080, height: 1920 }` (16:9 phone viewport, within Play Store 2:1 ratio limit)
 2. `browser_navigate` to the screen URL
 3. `browser_wait_for` with `{ time: 2 }` to let content render
-4. `browser_take_screenshot` saving to `.ship-app-temp/screenshots/screen-N.png`
+4. `browser_take_screenshot` — this returns base64 PNG data
+5. **Save the screenshot to disk:** Use the Write tool to write the base64 data to `.ship-app-temp/screenshots/screen-N.png`
 
 ### Step 4: Frame screenshots
 
@@ -300,7 +325,10 @@ Launch the `code-analyzer` agent to scan the codebase for:
 - Data collection patterns, permissions
 
 The agent returns a structured JSON with content rating answers and privacy analysis.
-Save the analysis JSON to `.ship-app-temp/analysis.json`.
+
+**Important:** Write the agent's JSON output to disk using the Write tool:
+- Save to `.ship-app-temp/analysis.json`
+- This file is required by Phase 11 for privacy policy generation
 
 ### Playwright Path (preferred):
 1. Navigate to the app's content rating page in Play Console
@@ -369,8 +397,21 @@ Construct the upload configuration as a JSON file and use the `--upload` CLI:
     }
   },
   "track": "production",
+  "releaseStatus": "draft",
   "releaseNotes": [{ "language": "en-US", "text": "Initial release" }]
 }
+```
+
+**Important for new apps:** The first release MUST use `"releaseStatus": "draft"`. Google Play rejects `"completed"` on apps that haven't passed initial review. After the first review approval, subsequent uploads can use `"releaseStatus": "completed"`.
+
+For UPDATE mode, use `"releaseStatus": "completed"`:
+```json
+{
+  "packageName": "<packageName>",
+  "aabPath": "<signedAabPath>",
+  "track": "production",
+  "releaseStatus": "completed",
+  "releaseNotes": [{ "language": "en-US", "text": "<releaseNotes>" }]
 ```
 
 2. Run the upload:
@@ -384,6 +425,7 @@ node "$SHIP_APP_DIR/scripts/google-play-upload.mjs" --upload ".ship-app-temp/upl
   "packageName": "<packageName>",
   "aabPath": "<signedAabPath>",
   "track": "production",
+  "releaseStatus": "completed",
   "updateListings": false,
   "updateImages": false,
   "releaseNotes": [{ "language": "en-US", "text": "<releaseNotes>" }]
@@ -418,7 +460,7 @@ Play Console: https://play.google.com/console/developers/app/<packageName>
 ```
 
 **Cleanup:**
-- If a dev server was started (check `devServerPid` in state), tell user: "A dev server is still running (PID: <pid>). Stop it with: `kill <pid>`"
+- Remind user to stop their dev server if they started one for screenshots
 - Remove temp files: `rm -rf .ship-app-temp`
 
 ---

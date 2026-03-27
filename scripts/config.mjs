@@ -117,7 +117,7 @@ export function initConfig() {
 }
 
 // CLI mode
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('config.mjs')) {
   const cmd = process.argv[2];
 
   if (cmd === '--validate') {

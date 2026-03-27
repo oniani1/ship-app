@@ -84,7 +84,7 @@ export async function verifyAuth(keyPath, packageName) {
 
 // CLI mode
 const __filename = fileURLToPath(import.meta.url);
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('google-play-auth.mjs')) {
   const cmd = process.argv[2];
   const keyPath = process.argv.find(a => a.startsWith('--key='))?.split('=')[1];
   const packageName = process.argv.find(a => a.startsWith('--package='))?.split('=')[1];

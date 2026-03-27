@@ -249,7 +249,7 @@ function extractPort(script) {
 }
 
 // CLI mode
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('detect-project.mjs')) {
   const projectRoot = process.argv[2] || process.cwd();
   const result = detectProject(projectRoot);
   console.log(JSON.stringify(result, null, 2));

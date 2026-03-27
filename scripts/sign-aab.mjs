@@ -116,18 +116,16 @@ export function isAlreadySigned(aabPath) {
  * @returns {{ keytool: boolean, jarsigner: boolean }}
  */
 export function checkTools() {
-  const result = { keytool: false, jarsigner: false };
-  if (spawnSync('keytool', ['-help'], { stdio: 'pipe' }).status !== null) {
-    result.keytool = !spawnSync('keytool', ['-help'], { stdio: 'pipe' }).error;
-  }
-  if (spawnSync('jarsigner', ['-help'], { stdio: 'pipe' }).status !== null) {
-    result.jarsigner = !spawnSync('jarsigner', ['-help'], { stdio: 'pipe' }).error;
-  }
-  return result;
+  const kt = spawnSync('keytool', ['-help'], { stdio: 'pipe' });
+  const js = spawnSync('jarsigner', ['-help'], { stdio: 'pipe' });
+  return {
+    keytool: !kt.error,
+    jarsigner: !js.error
+  };
 }
 
 // CLI mode
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('sign-aab.mjs')) {
   const cmd = process.argv[2];
 
   if (cmd === '--check-tools') {

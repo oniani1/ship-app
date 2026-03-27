@@ -104,8 +104,10 @@ export async function generateFeatureGraphic(options) {
 
     // Crop to exactly 1024x500
     const sharp = (await import('sharp')).default;
+    // Play Store requires 24-bit PNG (no alpha) for feature graphics
     const cropped = await sharp(imageBuffer)
       .resize(1024, 500, { fit: 'cover', position: 'center' })
+      .removeAlpha()
       .png()
       .toBuffer();
 
@@ -233,7 +235,7 @@ function buildFeatureGraphicPrompt(appName, description, variantIndex) {
 }
 
 // CLI mode
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('generate-images.mjs')) {
   const cmd = process.argv[2];
   const name = process.argv.find(a => a.startsWith('--name='))?.split('=')[1] || 'MyApp';
   const desc = process.argv.find(a => a.startsWith('--desc='))?.split('=')[1] || '';

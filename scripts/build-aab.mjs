@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { detectProject } from './detect-project.mjs';
@@ -50,12 +50,13 @@ export function buildAAB(projectRoot, forceType) {
         console.log('Installing dependencies...');
         execSync('npm install', { cwd: root, stdio: 'inherit' });
       }
-      // Build web assets first
+      // Build web assets first (required for Capacitor)
       console.log('Building web assets...');
-      try {
+      const pkgData = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
+      if (pkgData.scripts?.build) {
         execSync('npm run build', { cwd: root, stdio: 'inherit' });
-      } catch {
-        console.log('Warning: web build failed or no build script. Continuing...');
+      } else {
+        console.log('  No build script found in package.json, skipping web build.');
       }
       // Sync to Android
       console.log('Syncing Capacitor...');
@@ -185,7 +186,7 @@ function buildPwaTwa(root) {
 }
 
 // CLI mode
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('build-aab.mjs')) {
   const projectRoot = process.argv[2] || process.cwd();
   const forceType = process.argv.find(a => a.startsWith('--type='))?.split('=')[1];
 

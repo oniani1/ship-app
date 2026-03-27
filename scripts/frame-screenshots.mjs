@@ -117,9 +117,11 @@ export async function frameScreenshot(options) {
   const finalWidth = Math.max(totalWidth, 1080);
   const finalHeight = Math.round(totalHeight * (finalWidth / totalWidth));
 
+  // Play Store requires 24-bit PNG (no alpha) for screenshots
   const final = await sharp(framed)
     .resize(finalWidth, finalHeight, { fit: 'inside' })
-    .png({ quality: 90 })
+    .removeAlpha()
+    .png()
     .toBuffer();
 
   writeFileSync(resolvedOutput, final);
@@ -197,9 +199,12 @@ export async function validateScreenshot(imagePath) {
 }
 
 function parseColor(color) {
-  // Simple hex color parser
   if (color.startsWith('#')) {
-    const hex = color.slice(1);
+    let hex = color.slice(1);
+    // Normalize 3-digit hex to 6-digit
+    if (hex.length === 3) {
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
     return {
       r: parseInt(hex.slice(0, 2), 16),
       g: parseInt(hex.slice(2, 4), 16),
@@ -216,17 +221,20 @@ if (process.argv[1]?.endsWith('frame-screenshots.mjs')) {
 
   if (cmd === '--frame') {
     const input = process.argv[3];
-    const output = process.argv[4] || input.replace('.png', '-framed.png');
+    if (!input) { console.error('Error: input file path required'); process.exit(1); }
+    const output = process.argv[4] || input.replace(/\.(png|jpe?g)$/i, '-framed.png');
     const device = process.argv.find(a => a.startsWith('--device='))?.split('=')[1] || 'generic';
     const result = await frameScreenshot({ screenshotPath: input, outputPath: output, device });
     console.log(JSON.stringify({ framed: result }));
   } else if (cmd === '--frame-all') {
     const inputDir = process.argv[3];
+    if (!inputDir) { console.error('Error: input directory required'); process.exit(1); }
     const outputDir = process.argv[4] || join(inputDir, 'framed');
     const device = process.argv.find(a => a.startsWith('--device='))?.split('=')[1] || 'generic';
     const results = await frameAllScreenshots({ inputDir, outputDir, device });
     console.log(JSON.stringify({ framed: results }));
   } else if (cmd === '--validate') {
+    if (!process.argv[3]) { console.error('Error: image path required'); process.exit(1); }
     const result = await validateScreenshot(process.argv[3]);
     console.log(JSON.stringify(result));
   } else {

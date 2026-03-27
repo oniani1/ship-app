@@ -36,9 +36,10 @@ export async function upload(options) {
     images,
     track = 'production',
     releaseNotes = [],
-    releaseStatus = 'completed',
+    releaseStatus = 'draft',
     updateListings = true,
-    updateImages = true
+    updateImages = true,
+    changesNotSentForReview = false
   } = options;
 
   const config = getConfig();
@@ -75,10 +76,6 @@ export async function upload(options) {
           mimeType: 'application/octet-stream',
           body: createReadStream(aabPath)
         }
-      }, {
-        timeout: 300000, // 5 minute timeout for upload
-        maxBodyLength: Infinity,
-        maxContentLength: Infinity
       });
       versionCode = bundle.data.versionCode;
       console.log(`  Bundle uploaded. Version code: ${versionCode}`);
@@ -215,7 +212,7 @@ export async function upload(options) {
           track,
           releases: [{
             status: releaseStatus,
-            versionCodes: [versionCode],
+            versionCodes: [String(versionCode)],
             releaseNotes: defaultNotes
           }]
         }
@@ -232,10 +229,11 @@ export async function upload(options) {
   console.log('Step 6/6: Committing edit...');
   let commitResult;
   try {
-    const commit = await client.edits.commit({
-      packageName,
-      editId
-    });
+    const commitParams = { packageName, editId };
+    if (changesNotSentForReview) {
+      commitParams.changesNotSentForReview = true;
+    }
+    const commit = await client.edits.commit(commitParams);
     commitResult = commit.data;
     console.log('  Edit committed successfully!');
   } catch (e) {
@@ -310,7 +308,7 @@ export async function getLatestVersion(packageName, track = 'production') {
 }
 
 // CLI mode
-if (process.argv[1] === __filename) {
+if (process.argv[1]?.endsWith('google-play-upload.mjs')) {
   const cmd = process.argv[2];
 
   if (cmd === '--check-app') {
