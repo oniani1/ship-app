@@ -57,10 +57,10 @@ You review and approve at each step. It does the grunt work.
 | **Store Listing** | Generates title, descriptions, category, tags in multiple languages | AI agent analyzes your code and README |
 | **App Icon** | Creates a 512x512 adaptive icon (3 variants to choose from) | DALL-E 3 or Gemini Imagen |
 | **Feature Graphic** | Creates a 1024x500 banner (2 variants) | DALL-E 3 or Gemini Imagen |
-| **Screenshots** | Captures real app screens at 1080x2400 and frames in device mockups | Playwright MCP + Sharp compositing |
+| **Screenshots** | Captures real app screens at 1080x1920 and frames in device mockups | Playwright MCP + Sharp compositing |
 | **Content Rating** | Analyzes code for violence, ads, UGC, data collection | Agent scans dependencies, permissions, patterns |
 | **Privacy Policy** | Generates GDPR/CCPA-compliant policy and deploys it | Handlebars template + GitHub Pages |
-| **Upload** | Uploads AAB, listings, images via API and sets production track | Google Play Developer API v3 (6-step edit workflow) |
+| **Upload** | Uploads AAB, listings, images via API and sets release track | Google Play Developer API v3 (6-step edit workflow) |
 
 ---
 
@@ -192,10 +192,16 @@ Phase 13 ──  Confirmation with Play Console link
 - Verify the service account JSON key file exists at the configured path
 - Ensure the API is enabled in Google Cloud Console
 - Check that the service account has both Release manager AND Manage store presence roles in Play Console
+- Permission changes can take up to **24-48 hours** to propagate
+
+### First upload rejected
+- New apps MUST use `draft` release status (the skill does this automatically)
+- After Google approves the first review, subsequent uploads can use `completed`
+- If your app was previously rejected, the upload may need `changesNotSentForReview` — the skill handles this
 
 ### Screenshots fail
 - Ensure Playwright MCP is configured in Claude Code
-- Start the dev server manually if auto-detection doesn't work
+- The skill will ask you to start your dev server manually in a separate terminal
 - Provide the URL directly when prompted
 
 ### Image generation fails
