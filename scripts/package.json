@@ -1,0 +1,27 @@
+{
+  "name": "ship-app-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Helper scripts for the /ship-app Claude Code skill",
+  "scripts": {
+    "verify-auth": "node google-play-auth.mjs --verify",
+    "detect": "node detect-project.mjs",
+    "build": "node build-aab.mjs",
+    "sign": "node sign-aab.mjs",
+    "upload": "node google-play-upload.mjs",
+    "generate-images": "node generate-images.mjs",
+    "frame": "node frame-screenshots.mjs",
+    "deploy-privacy": "node deploy-privacy-policy.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "google-auth-library": "^9.0.0",
+    "sharp": "^0.33.0",
+    "gh-pages": "^6.0.0",
+    "handlebars": "^4.7.0",
+    "detect-port": "^2.0.0"
+  }
+}

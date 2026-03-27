@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - {{appName}}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6; color: #333; background: #fafafa;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; background: #fff; min-height: 100vh; }
+    h1 { font-size: 2em; margin-bottom: 8px; color: #111; }
+    h2 { font-size: 1.3em; margin: 32px 0 12px; color: #222; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    p { margin-bottom: 12px; }
+    ul { margin: 12px 0; padding-left: 24px; }
+    li { margin-bottom: 6px; }
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .app-name { font-size: 1.1em; color: #555; margin-bottom: 4px; }
+    .effective-date { font-size: 0.9em; color: #777; margin-bottom: 24px; }
+    strong { color: #222; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="app-name">{{appName}}</p>
+    <p class="effective-date">Effective Date: {{effectiveDate}}</p>
+
+    <h2>Introduction</h2>
+    <p>{{appName}} ("we", "our", or "us") is committed to protecting your privacy.
+    This Privacy Policy explains how we collect, use, and safeguard your information
+    when you use our mobile application.</p>
+    <p>By using the app, you agree to the collection and use of information in accordance
+    with this policy.</p>
+
+    <h2>Information We Collect</h2>
+    <ul>
+      {{#if hasAuth}}
+      <li>Account information (email, name) when you create an account</li>
+      {{/if}}
+      {{#if dataCollection.personalInfo}}
+      <li>Personal information you provide through forms</li>
+      {{/if}}
+      {{#if dataCollection.location}}
+      <li>Location data when you grant location permissions</li>
+      {{/if}}
+      {{#if dataCollection.camera}}
+      <li>Photos or camera data when you use camera features</li>
+      {{/if}}
+      {{#if dataCollection.contacts}}
+      <li>Contact information when you grant contacts permissions</li>
+      {{/if}}
+      {{#if dataCollection.storage}}
+      <li>Files and media when you grant storage permissions</li>
+      {{/if}}
+      {{#if hasUGC}}
+      <li>Content you create, upload, or share within the app</li>
+      {{/if}}
+      {{#if hasAnalytics}}
+      <li>Usage data and analytics (app interactions, crash reports)</li>
+      {{/if}}
+      <li>Device information (device type, operating system, unique device identifiers)</li>
+    </ul>
+
+    <h2>How We Use Your Information</h2>
+    <ul>
+      <li>To provide and maintain the app's functionality</li>
+      <li>To improve user experience and app performance</li>
+      {{#if hasAuth}}
+      <li>To manage your account and provide customer support</li>
+      {{/if}}
+      {{#if hasAnalytics}}
+      <li>To analyze usage patterns and fix issues</li>
+      {{/if}}
+      {{#if hasAds}}
+      <li>To display relevant advertisements</li>
+      {{/if}}
+      <li>To comply with legal obligations</li>
+    </ul>
+
+    {{#if thirdPartyServices.length}}
+    <h2>Third-Party Services</h2>
+    <p>We may use the following third-party services that may collect information:</p>
+    <ul>
+      {{#each thirdPartyServices}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+    <p>These services have their own privacy policies. We encourage you to review them.</p>
+    {{/if}}
+
+    <h2>Data Security</h2>
+    <p>We implement appropriate security measures to protect your personal information.
+    However, no method of transmission over the Internet or electronic storage is 100% secure,
+    and we cannot guarantee absolute security.</p>
+
+    <h2>Data Retention</h2>
+    <p>We retain your personal data only for as long as necessary to fulfill the purposes
+    described in this policy. When data is no longer needed, we will delete or anonymize it.</p>
+
+    <h2>Your Rights</h2>
+    <p>Depending on your location, you may have the following rights:</p>
+    <ul>
+      <li><strong>Access:</strong> Request a copy of your personal data</li>
+      <li><strong>Correction:</strong> Request correction of inaccurate data</li>
+      <li><strong>Deletion:</strong> Request deletion of your personal data</li>
+      <li><strong>Portability:</strong> Request a copy of your data in a portable format</li>
+      <li><strong>Opt-out:</strong> Opt out of data collection or marketing communications</li>
+    </ul>
+    <p>To exercise these rights, contact us at <a href="mailto:{{contactEmail}}">{{contactEmail}}</a>.</p>
+
+    {{#if childrenTargeted}}
+    <h2>Children's Privacy</h2>
+    <p>This app is designed for users of all ages. We comply with the Children's Online
+    Privacy Protection Act (COPPA) and do not knowingly collect personal information
+    from children under 13 without parental consent.</p>
+    {{else}}
+    <h2>Children's Privacy</h2>
+    <p>This app is not directed at children under 13. We do not knowingly collect
+    personal information from children under 13. If you believe we have collected
+    such information, please contact us to have it removed.</p>
+    {{/if}}
+
+    <h2>Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Changes will be posted on this page
+    with an updated effective date. Continued use of the app after changes constitutes acceptance.</p>
+
+    <h2>Contact Us</h2>
+    <p>If you have questions about this Privacy Policy, contact us at:
+    <a href="mailto:{{contactEmail}}">{{contactEmail}}</a></p>
+  </div>
+</body>
+</html>

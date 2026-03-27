@@ -1,0 +1,9 @@
+node_modules/
+.ship-app-temp/
+*.keystore
+*.jks
+*.aab
+config.json
+.DS_Store
+Thumbs.db
+*.log
