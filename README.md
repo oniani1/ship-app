@@ -19,7 +19,7 @@ Build, sign, list, screenshot, and upload — fully automated from Claude Code.
 ## Quick Install
 
 ```bash
-git clone https://github.com/nikaoniani/ship-app.git
+git clone https://github.com/oniani1/ship-app.git
 cd ship-app
 ./install.sh        # macOS/Linux
 # .\install.ps1     # Windows
